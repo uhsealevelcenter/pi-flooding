@@ -82,7 +82,7 @@ def station_levels(station_id, units_toggle=True):
 
     topten_with_return_periods = []
     mx_ht = 100
-    print(levels)
+
     for rp in [
         lev for lev in levels if lev["value"] in ["100yr", "10yr", "2yr", "1yr"]
     ]:

@@ -20,7 +20,7 @@ def generate_app_header():
                             children=[
                                 html.H2("Pacific Islands Flooding"),
                                 html.Span(
-                                    "A Sea-Level Analysis Tool",
+                                    "Sea-Level Analysis Tool",
                                     className="app-header-subtitle",
                                 ),
                             ],
