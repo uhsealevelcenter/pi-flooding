@@ -18,13 +18,12 @@ jobs:
 #          name: "Say hello"
 #          command: "echo Hello, World!"
   deploy-it:
-    machine:
-      image: ubuntu-2004
-#    docker:
-#      - image: cimg/base:stable
+    docker:
+      - image: cimg/base:stable
     steps:
       - checkout
       - add_ssh_keys
+      - run: apt install rsync
       - run:
           name: "Deploy to wyrtki"
           command: |
