@@ -5,18 +5,6 @@ version: 2.1
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-#  say-hello:
-#    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
-#    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
-#    docker:
-#      - image: cimg/base:stable
-#    # Add steps to the job
-#    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
-#    steps:
-#      - checkout
-#      - run:
-#          name: "Say hello"
-#          command: "echo Hello, World!"
   deploy-it:
     docker:
       - image: cimg/base:stable
@@ -29,20 +17,13 @@ jobs:
           name: "Deploy to wyrtki"
           command: |
            echo 'wyrtki.soest.hawaii.edu ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAJJyf1/zR4Lt5IA/+dY1VIqBHi5ZUx9/PYIYiHEW6b8rZBnR7gu7U7iqJiBn3Ob9m3YpQgqZD47zaaaHQ/Ykkc=' >> ~/.ssh/known_hosts
-           rsync -va  assets graphs layouts dash-apps-env.yml flooding_days_app.py gunicorn_config.py.example piflooding.service.example uhslc@wyrtki.soest.hawaii.edu:/srv/apps/pacificislandsflooding 
+           rsync -va  assets graphs layouts dash-apps-env.yml flooding_days_app.py gunicorn_config.py.example piflooding.service.example uhslc-dash@wyrtki.soest.hawaii.edu:/srv/apps/pacificislandsflooding 
 
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-#  say-hello-workflow:
-#    jobs:
-#      - say-hello
   deploy-it-workflow:
     jobs:
       - deploy-it
- #         filters: 
- #           branches:
- #             only:
- #               - master
 
