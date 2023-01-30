@@ -47,7 +47,7 @@ from layouts.info_modals_layout import generate_info_modal
 # -------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------
 
-tarball = "pi-flooding-data-test.tar.gz"
+tarball = "pi-flooding-data.tar.gz"
 
 if not os.path.isdir(f"./data"):
 
