@@ -38,9 +38,9 @@ workflows:
 #      - say-hello
   deploy-it-workflow:
     jobs:
-      - deploy-it:
-          filters: 
-            branches:
-              only:
-                - master
+      - deploy-it
+ #         filters: 
+ #           branches:
+ #             only:
+ #               - master
 
