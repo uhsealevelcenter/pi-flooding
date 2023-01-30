@@ -18,8 +18,10 @@ jobs:
 #          name: "Say hello"
 #          command: "echo Hello, World!"
   deploy-it:
-    docker:
-      - image: cimg/base:stable
+    machine:
+      image: ubuntu-2004
+#    docker:
+#      - image: cimg/base:stable
     steps:
       - checkout
       - add_ssh_keys
