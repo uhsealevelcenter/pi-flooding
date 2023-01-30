@@ -26,4 +26,8 @@ workflows:
   deploy-it-workflow:
     jobs:
       - deploy-it
+          filters: 
+            branches:
+              only:
+                - main
 
