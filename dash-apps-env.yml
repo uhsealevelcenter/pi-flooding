@@ -13,3 +13,4 @@ dependencies:
   - dash-daq=0.5
   - dash-table=5.0
   - dash-bootstrap-components=1.3
+  - gunicorn=20.0.4

@@ -1,0 +1,15 @@
+from multiprocessing import cpu_count
+
+# Socket Path
+bind = 'unix:/srv/apps/pi-flooding/gunicorn.sock'
+
+# Worker Options
+# workers = cpu_count() + 1
+workers = 2
+worker_class="uvicorn.workers.UvicornWorker"
+
+# Logging Options
+loglevel="debug"
+accesslog = '/srv/apps/pi-flooding/access_log'
+errorlog =  '/srv/apps/pi-flooding/error_log'
+

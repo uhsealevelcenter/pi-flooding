@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn Daemon for plotly dash pi-flooding app
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/srv/apps/pi-flooding
+ExecStart=/home/uhslc/miniconda3/envs/dash-apps/bin/gunicorn -c gunicorn_conf.py flooding_days_app:server
+
+[Install]
+WantedBy=multi-user.target
+
