@@ -17,7 +17,7 @@ jobs:
           name: "Deploy to wyrtki"
           command: |
            echo 'wyrtki.soest.hawaii.edu ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAJJyf1/zR4Lt5IA/+dY1VIqBHi5ZUx9/PYIYiHEW6b8rZBnR7gu7U7iqJiBn3Ob9m3YpQgqZD47zaaaHQ/Ykkc=' >> ~/.ssh/known_hosts
-           rsync -va  assets graphs layouts dash-apps-env.yml flooding_days_app.py gunicorn_config.py.example piflooding.service.example uhslc-dash@wyrtki.soest.hawaii.edu:/srv/apps/pacificislandsflooding 
+           rsync -va  assets graphs layouts dash-apps-env.yml flooding_days_app.py gunicorn_config.py.example piflooding.service.example uhslc-dash@wyrtki.soest.hawaii.edu:/srv/apps/pi-flooding 
 
 
 # Invoke jobs via workflows
