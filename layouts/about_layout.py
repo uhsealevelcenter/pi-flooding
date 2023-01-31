@@ -237,13 +237,10 @@ def generate_instructions_content():
                 html.P(
                     [
                         "From the selected combination of location, threshold, and scenario, the ",
-                        html.I(dcc.Link("Projected Flooding", href="/sea-level-rise",)),
-                        html.A(
-                            "2022 U.S. Interagency Task Force (ITF) report",
-                            href="https://oceanservice.noaa.gov/hazards/sealevelrise/sealevelrise-tech-report-sections.html",
-                            target="_blank",
+                        html.I(
+                            dcc.Link("Projected Flooding", href="/projected-flooding",)
                         ),
-                        " shows the expected number of flooding days per year during the 21st century. The projections are based on the approach of ",
+                        " tab shows the expected number of flooding days per year during the 21st century. The projections are based on the approach of ",
                         html.A(
                             "Thompson et al. (2021)",
                             href="https://www.nature.com/articles/s41558-021-01077-8",
