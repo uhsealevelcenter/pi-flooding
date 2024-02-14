@@ -70,7 +70,7 @@ if not os.path.isdir(f"./data"):
 # SETUP APP
 # -------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------
-
+base_path = "/"
 app = dash.Dash(
     __name__,
     meta_tags=[
@@ -81,6 +81,7 @@ app = dash.Dash(
     ],
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP, dbc.themes.YETI],
     suppress_callback_exceptions=True,
+    url_base_pathname=base_path,
 )
 app.title = "PI Flooding Days"
 server = app.server
@@ -91,7 +92,12 @@ server = app.server
 # -------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------
 
-init = dict(station="057", scenario="int", threshold="10yr", year="2050",)
+init = dict(
+    station="057",
+    scenario="int",
+    threshold="10yr",
+    year="2050",
+)
 
 fname = "./data/stations.json"
 with open(fname, "r") as f:
@@ -136,12 +142,18 @@ app_pages = {
         "name": "Observed Flooding",
         "dom": generate_obs_flood_page(init),
     },
-    "sea-level-rise": {"name": "Sea-Level Rise", "dom": generate_slr_page(init),},
+    "sea-level-rise": {
+        "name": "Sea-Level Rise",
+        "dom": generate_slr_page(init),
+    },
     "projected-flooding": {
         "name": "Projected Flooding",
         "dom": generate_htf_projection_page(init),
     },
-    "about": {"name": "About", "dom": generate_about_page(),},
+    "about": {
+        "name": "About",
+        "dom": generate_about_page(),
+    },
 }
 app_pages_names = {pg: app_pages[pg]["name"] for pg in app_pages}
 app_options = generate_options(options)
@@ -171,24 +183,63 @@ app.layout = html.Div(
     id="app-container",
     children=[
         dcc.Location(id="url", refresh=False),  # represents URL bar
-        html.Div(id="app_header", children=app_header,),
-        html.Div(id="stations-map", children=stations_map,),
+        html.Div(
+            id="app_header",
+            children=app_header,
+        ),
+        html.Div(
+            id="stations-map",
+            children=stations_map,
+        ),
         html.Div(id="sticky-header", children=[app_tabs, app_options]),
         html.Div(
             id="app-page-container",
             children=[app_pages[pg]["dom"] for pg in app_pages],
         ),
-        html.Div(id="info-modals", children=info_modals,),
-        dcc.Store(id="redraw-map-store", data="",),
-        dcc.Store(id="last-map-redraw-was-hidden-store", data="",),
-        dcc.Store(id="station-id-store", data="",),
-        dcc.Store(id="thresholds-store", data="",),
-        dcc.Store(id="current-threshold-store", data="",),
-        dcc.Store(id="slr-scenarios-data-store", data="",),
-        dcc.Store(id="slr-budget-data-store", data="",),
-        dcc.Store(id="slr-budget-year-store", data=init["year"],),
-        dcc.Store(id="clim-prjn-data-store", data="",),
-        dcc.Store(id="clim-year-store", data=init["year"],),
+        html.Div(
+            id="info-modals",
+            children=info_modals,
+        ),
+        dcc.Store(
+            id="redraw-map-store",
+            data="",
+        ),
+        dcc.Store(
+            id="last-map-redraw-was-hidden-store",
+            data="",
+        ),
+        dcc.Store(
+            id="station-id-store",
+            data="",
+        ),
+        dcc.Store(
+            id="thresholds-store",
+            data="",
+        ),
+        dcc.Store(
+            id="current-threshold-store",
+            data="",
+        ),
+        dcc.Store(
+            id="slr-scenarios-data-store",
+            data="",
+        ),
+        dcc.Store(
+            id="slr-budget-data-store",
+            data="",
+        ),
+        dcc.Store(
+            id="slr-budget-year-store",
+            data=init["year"],
+        ),
+        dcc.Store(
+            id="clim-prjn-data-store",
+            data="",
+        ),
+        dcc.Store(
+            id="clim-year-store",
+            data=init["year"],
+        ),
     ],
 )
 
@@ -304,8 +355,8 @@ def update_page(
 
     if trigger == "url.pathname":
         # logic for handling changes in the url bar
-
-        url_page = "projected-flooding" if url_path[1:] == "" else url_path[1:]
+        url_path = url_path.replace(base_path, "")  # exclude base path
+        url_page = "projected-flooding" if url_path == "" else url_path
         if url_page[:5] == "about":
             about_tab_select = f"about-{url_page[6:]}"
             url_page = url_page[:5]
@@ -331,6 +382,7 @@ def update_page(
             if units_query is not None
             else units_toggle
         )
+        threshold_units = "ft" if units_toggle else "m"
 
         scenario_query = (
             parsed_queries["scenario"][0] if "scenario" in parsed_queries else None
@@ -404,9 +456,11 @@ def update_page(
         # display correct app page based on url
         app_page_classes_base = "app-page"
         app_page_classes = {
-            pg: app_page_classes_base + " current-app-page"
-            if pg == url_page
-            else app_page_classes_base + " hidden-app-page"
+            pg: (
+                app_page_classes_base + " current-app-page"
+                if pg == url_page
+                else app_page_classes_base + " hidden-app-page"
+            )
             for pg in app_pages
         }
 
@@ -423,9 +477,11 @@ def update_page(
             # display correct about page based on url
             about_page_classes_base = "app-page-section"
             about_page_classes = {
-                pg: about_page_classes_base + " current-app-page"
-                if pg == about_tab_select
-                else about_page_classes_base + " hidden-app-page"
+                pg: (
+                    about_page_classes_base + " current-app-page"
+                    if pg == about_tab_select
+                    else about_page_classes_base + " hidden-app-page"
+                )
                 for pg in about_sections
             }
 
@@ -518,6 +574,7 @@ def update_page(
         thresholds_store, topten_table, thresholds_updated = station_levels(
             station_id, units_toggle
         )
+
         threshold_options = [
             {k: d[k] for k in d if k not in ["height", "height_key"]}
             for d in thresholds_store
@@ -531,6 +588,20 @@ def update_page(
                 if h["value"] == init["threshold"]:
                     threshold_key = h["height_key"]
                     break
+
+        if threshold_key is None and trigger == "units-toggle.value":
+            threshold_float = float(threshold_float)
+            # Convert custom float after unit change
+            threshold_m = (
+                round(threshold_float, 2)
+                if units_toggle
+                else round(threshold_float / 3.281, 2)
+            )
+            threshold_m = max(threshold_m, 0.0)
+            threshold_m = min(threshold_m, 3.0)
+            threshold_key = "{:03}".format(
+                int(round(100 * threshold_m))
+            )  # deal with float imprecision
 
         # load SLR scenarios
         filename = f"./data/slr_scenarios/{station_id_store}.json"
@@ -556,7 +627,7 @@ def update_page(
     else:
 
         station_id_store = dash.dash.no_update
-        units_toggle = dash.dash.no_update
+        # units_toggle = dash.dash.no_update # let this pass through since units_toggle value is needed for later code
         thresholds = dash.dash.no_update
         topten_table = dash.dash.no_update
         threshold_options = dash.dash.no_update
@@ -592,14 +663,18 @@ def update_page(
         )
         threshold_m = max(threshold_m, 0.0)
         threshold_m = min(threshold_m, 3.0)
-        threshold_key = "{:03}".format(int(100 * threshold_m))
+        threshold_key = "{:03}".format(
+            int(round(100 * threshold_m))
+        )  # deal with float imprecision
 
     threshold_name = None
     for h in thresholds_store:
         if (h["height_key"] == threshold_key) & (
             h["value"] not in ["msl", "mllw", "mhhw"]
         ):
-            threshold_select = h["value"]
+            threshold_select = (  # do not overwrite custom threshold if user has explicitly selected this option
+                h["value"] if threshold_select != "custom" else threshold_select
+            )
             threshold_name = h["label"]
             break
     threshold_select = "custom" if threshold_name is None else threshold_select
@@ -616,27 +691,37 @@ def update_page(
     # ---------------------------------------------------------------------------------
     # CONSTRUCT UPDATED URL
 
-    url_path = "/" + url_page
+    url_path = base_path + url_page  # replace base_path
     url_path = (
         url_path + "/" + about_tab_select[6:] if url_page == "about" else url_path
     )
     url_queries = {
         "station-id": station_id,
-        "map": ("hide" if not show_map_toggle else "show")
-        if show_map_query is not None or not show_map_toggle
-        else None,
-        "units": ("meters" if not units_toggle else "feet")
-        if units_query is not None or not units_toggle
-        else None,
-        "scenario": scenario_select.replace("_", "-")
-        if scenario_query is not None or (scenario_select != "int")
-        else None,
-        "threshold": threshold_key
-        if threshold_query is not None or (threshold_select != "minor")
-        else None,
-        "yoi": ("hide" if not yoi_toggle else "show")
-        if yoi_query is not None or yoi_toggle
-        else None,
+        "map": (
+            ("hide" if not show_map_toggle else "show")
+            if show_map_query is not None or not show_map_toggle
+            else None
+        ),
+        "units": (
+            ("meters" if not units_toggle else "feet")
+            if units_query is not None or not units_toggle
+            else None
+        ),
+        "scenario": (
+            scenario_select.replace("_", "-")
+            if scenario_query is not None or (scenario_select != "int")
+            else None
+        ),
+        "threshold": (
+            threshold_key
+            if threshold_query is not None or (threshold_select != "minor")
+            else None
+        ),
+        "yoi": (
+            ("hide" if not yoi_toggle else "show")
+            if yoi_query is not None or yoi_toggle
+            else None
+        ),
     }
     order_queries = [
         *[q for q in url_queries if q in parsed_queries],
@@ -656,6 +741,13 @@ def update_page(
         units_toggle = dash.dash.no_update
         scenario_select = dash.dash.no_update
         threshold_select = dash.dash.no_update
+
+    # Attempt to stop HTF graph updating after unit change, but url query update is likely interfering/causing re-rendering
+    # if trigger == "units-toggle.value":
+    #     yoi_toggle = dash.dash.no_update
+    #     station_id_store = dash.dash.no_update
+    #     scenario_select = dash.dash.no_update
+    #     threshold_select = dash.dash.no_update
 
     # ---------------------------------------------------------------------------------
     # RETURN OUTPUTS
@@ -715,7 +807,9 @@ def update_page(
     State("show-map-toggle", "value"),
 )
 def redraw_stations_map(
-    redraw_map_store, station_id_store, show_map_toggle,
+    redraw_map_store,
+    station_id_store,
+    show_map_toggle,
 ):
 
     last_map_redraw_was_hidden = (
@@ -747,7 +841,10 @@ def redraw_stations_map(
     Input("units-toggle", "value"),
 )
 def update_obs_flood_graph(
-    station_id_store, thresholds_store, current_threshold_store, units_toggle,
+    station_id_store,
+    thresholds_store,
+    current_threshold_store,
+    units_toggle,
 ):
 
     units_toggle = "ft" if units_toggle else "m"
@@ -772,7 +869,9 @@ def update_obs_flood_graph(
         )
 
         obs_flood_text = observed_flooding_text(
-            station_name, threshold_name, obs_flood_analysis,
+            station_name,
+            threshold_name,
+            obs_flood_analysis,
         )
 
     else:
@@ -805,23 +904,24 @@ def update_obs_flood_graph(
     Input("station-id-store", "data"),
     Input("scenario-select", "value"),
     Input("current-threshold-store", "data"),
-    Input("units-toggle", "value"),
+    # Input("units-toggle", "value"),
     Input("yoi-toggle", "value"),
-    State("thresholds-store", "data"),
+    # State("thresholds-store", "data"),
     prevent_initial_call=True,
 )
 def update_htf_graph(
     station_id_store,
     scenario_select,
     current_threshold_store,
-    units_toggle,
+    # units_toggle,
     yoi_toggle,
-    thresholds,
+    # thresholds, # not sure what this was used for - KF
 ):
 
-    units_toggle = "ft" if units_toggle else "m"
+    # units_toggle = "ft" if units_toggle else "m"
 
     trigger = dash.callback_context.triggered[0]["prop_id"]
+
     relevant_triggers = [
         "scenario-select.value",
         "threshold-select.value",
@@ -888,7 +988,9 @@ def update_htf_graph(
         Input("htf-graph", "clickData"),
         Input("clim-prjn-data-store", "data"),
     ],
-    [State("clim-year-store", "data"),],
+    [
+        State("clim-year-store", "data"),
+    ],
 )
 def update_clim_graph(prjn_hover, prjn_click, clim_json, clim_year_store):
 
@@ -928,7 +1030,10 @@ def update_clim_graph(prjn_hover, prjn_click, clim_json, clim_year_store):
     ],
 )
 def update_slr_graph(
-    station_id_store, scenario_select, units_toggle, slr_scenarios_json,
+    station_id_store,
+    scenario_select,
+    units_toggle,
+    slr_scenarios_json,
 ):
 
     trigger = dash.callback_context.triggered[0]["prop_id"]
@@ -1207,4 +1312,4 @@ def toggle_modal(*inputs):
 # -------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    app.run_server(debug=True, port=8090)
+    app.run_server(debug=False, port=8052)
