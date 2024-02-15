@@ -9,8 +9,8 @@ jobs:
     docker:
       - image: cimg/base:stable
     steps:
-      - checkout
       - add_ssh_keys
+      - checkout
       - run: sudo apt update
       - run: sudo apt install rsync
       - run:
