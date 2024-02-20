@@ -355,7 +355,7 @@ def update_page(
 
     if trigger == "url.pathname":
         # logic for handling changes in the url bar
-        url_path = url_path.replace(base_path, "")  # exclude base path
+        url_path = url_path.split(base_path, 1)[1]  # exclude base path
         url_page = "projected-flooding" if url_path == "" else url_path
         if url_page[:5] == "about":
             about_tab_select = f"about-{url_page[6:]}"
@@ -574,7 +574,6 @@ def update_page(
         thresholds_store, topten_table, thresholds_updated = station_levels(
             station_id, units_toggle
         )
-
         threshold_options = [
             {k: d[k] for k in d if k not in ["height", "height_key"]}
             for d in thresholds_store
@@ -595,7 +594,7 @@ def update_page(
             threshold_m = (
                 round(threshold_float, 2)
                 if units_toggle
-                else round(threshold_float / 3.281, 2)
+                else round(threshold_float / 3.28084, 2)
             )
             threshold_m = max(threshold_m, 0.0)
             threshold_m = min(threshold_m, 3.0)
@@ -657,7 +656,7 @@ def update_page(
     if trigger == "threshold-float.value" or threshold_key is None:
         threshold_float = float(threshold_float)
         threshold_m = (
-            round(threshold_float / 3.281, 2)
+            round(threshold_float / 3.28084, 2)
             if units_toggle
             else round(threshold_float, 2)
         )
@@ -681,9 +680,9 @@ def update_page(
 
     current_threshold_store = {
         "key": threshold_key,
-        "name": threshold_name if threshold_name is not None else "Custom",
+        "name": threshold_name if threshold_select != "custom" else "Custom",
         "m": round(float(threshold_key) / 100, 2),
-        "ft": round(3.281 * float(threshold_key) / 100, 2),
+        "ft": round(3.28084 * float(threshold_key) / 100, 2),
     }
 
     threshold_float = current_threshold_store[threshold_units]
@@ -866,6 +865,8 @@ def update_obs_flood_graph(
             current_threshold_store["key"],
             thresholds_store,
             units_toggle,
+            user_selected_custom=threshold_name
+            == "Custom",  # override name in plot if user has selected custom
         )
 
         obs_flood_text = observed_flooding_text(

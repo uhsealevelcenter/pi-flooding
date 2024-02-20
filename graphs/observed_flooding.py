@@ -28,7 +28,9 @@ def station_levels(station_id, units_toggle=True):
     # extract top ten events before replacing levels variable
     for n in range(len(levels["topten"])):
         levels["topten"][n]["height"] = (
-            np.round(levels["topten"][n]["height"] * 3.28084, 2)
+            np.round(
+                np.round(levels["topten"][n]["height"], 2) * 3.28084, 2
+            )  # round meters to 2 decimals first to keep consistent
             if units == "ft"
             else np.round(levels["topten"][n]["height"], 2)
         )
@@ -71,9 +73,13 @@ def station_levels(station_id, units_toggle=True):
         dict(
             value=h,
             label=levels_names[h],
-            height=np.round(levels[h] * 3.28084, 2)
-            if units == "ft"
-            else np.round(levels[h], 2),
+            height=(
+                np.round(
+                    np.round(levels[h], 2) * 3.28084, 2
+                )  # round meters to 2 decimal points FIRST to match rest of site
+                if units == "ft"
+                else np.round(levels[h], 2)
+            ),
             height_key=f"{round(100*levels[h]):0>3}",
         )
         for h in levels
@@ -112,7 +118,9 @@ def station_levels(station_id, units_toggle=True):
     return levels, topten_with_return_periods, updated
 
 
-def observed_flooding(station_id, threshold_key, levels, units):
+def observed_flooding(
+    station_id, threshold_key, levels, units, user_selected_custom=False
+):
 
     col = anlyz.color_palette()
     # fcol = [anlyz.fill_color(c, 0.25) for c in col if c[0] == "#"]
@@ -147,7 +155,9 @@ def observed_flooding(station_id, threshold_key, levels, units):
     this_threshold = [
         lev["value"] for lev in levels if lev["height_key"] == threshold_key
     ]
-    if len(this_threshold) == 0:
+    if (
+        len(this_threshold) == 0 or user_selected_custom
+    ):  # if user has chosen Custom option, always show custom label
         this_threshold = "custom"
         thrsh_ht = int(threshold_key) / 100
         thresholds[this_threshold] = (
@@ -289,20 +299,22 @@ def observed_flooding(station_id, threshold_key, levels, units):
                 {
                     "x": 1.01,
                     "y": thresholds[thrsh],
-                    "text": "<b>"
-                    + threshold_names[thrsh]
-                    + " ("
-                    + str(thresholds[thrsh])
-                    + " "
-                    + units
-                    + ")</b>"
-                    if thrsh == this_threshold
-                    else threshold_names[thrsh]
-                    + " ("
-                    + str(thresholds[thrsh])
-                    + " "
-                    + units
-                    + ")",
+                    "text": (
+                        "<b>"
+                        + threshold_names[thrsh]
+                        + " ("
+                        + str(thresholds[thrsh])
+                        + " "
+                        + units
+                        + ")</b>"
+                        if thrsh == this_threshold
+                        else threshold_names[thrsh]
+                        + " ("
+                        + str(thresholds[thrsh])
+                        + " "
+                        + units
+                        + ")"
+                    ),
                     "font": {"color": black if thrsh == this_threshold else "#777"},
                     "xref": "paper",
                     "yref": "y1",
@@ -373,9 +385,11 @@ def observed_flooding(station_id, threshold_key, levels, units):
                     1.05 * thresholds[this_threshold],
                     1.05 * obs_max,
                     1.05 * thresholds["moderate"] if "moderate" in thresholds else 0,
-                    1.05 * thresholds["nws_moderate"]
-                    if "nws_moderate" in thresholds
-                    else 0,
+                    (
+                        1.05 * thresholds["nws_moderate"]
+                        if "nws_moderate" in thresholds
+                        else 0
+                    ),
                 ]
             ),
         ],
@@ -401,7 +415,9 @@ def observed_flooding(station_id, threshold_key, levels, units):
 
     for trc in traces:
         fig.add_trace(
-            trc, row=2, col=1,
+            trc,
+            row=2,
+            col=1,
         )
 
     max_count = max([c for c in htfo["annual"]["counts"] if c is not None])
@@ -425,7 +441,11 @@ def observed_flooding(station_id, threshold_key, levels, units):
         height=600,
         margin=dict(l=70, r=30, b=30, t=30, pad=0),
         font=dict(size=14),
-        xaxis=dict(layer="below traces", zeroline=False, matches="x2",),
+        xaxis=dict(
+            layer="below traces",
+            zeroline=False,
+            matches="x2",
+        ),
         xaxis3=dict(
             layer="below traces",
             zeroline=False,
@@ -434,9 +454,19 @@ def observed_flooding(station_id, threshold_key, levels, units):
             fixedrange=True,
             visible=False,
         ),
-        yaxis=dict(layer="below traces", side="left", zeroline=False,),
-        xaxis2=dict(showgrid=True,),
-        yaxis2=dict(layer="below traces", side="left", fixedrange=True,),
+        yaxis=dict(
+            layer="below traces",
+            side="left",
+            zeroline=False,
+        ),
+        xaxis2=dict(
+            showgrid=True,
+        ),
+        yaxis2=dict(
+            layer="below traces",
+            side="left",
+            fixedrange=True,
+        ),
         legend=dict(
             xanchor="center",
             x=0.5,
@@ -504,8 +534,12 @@ def observed_flooding(station_id, threshold_key, levels, units):
         first_obs=first_obs,
         last_obs=last_obs,
         record_length=int(np.round(record_length)),
-        flood_counts=dict(overall=floods.index.size,),
-        floods_per_year=dict(overall=np.round(floods.index.size / record_length, 1),),
+        flood_counts=dict(
+            overall=floods.index.size,
+        ),
+        floods_per_year=dict(
+            overall=np.round(floods.index.size / record_length, 1),
+        ),
         climatology=climatology,
         max_counts=dict(
             annual=dict(count=ann_max_count, years=ann_max_years),
@@ -533,7 +567,9 @@ def observed_flooding(station_id, threshold_key, levels, units):
     else:
         flood_analysis = {
             **flood_analysis,
-            **dict(analyze_long_term=False,),
+            **dict(
+                analyze_long_term=False,
+            ),
         }
 
     return fig, flood_analysis
@@ -614,13 +650,15 @@ def observed_flooding_text(station_name, threshold_name, obs_flood_analysis):
             className="analysis-highlight",
             children=[
                 dcc.Markdown(children=overall_record_blurb),
-                html.Div(
-                    "*Years of January in May–April meteorological years",
-                    style={"font-size": 11, "margin-top": "15px"},
-                )
-                if (obs_flood_analysis["flood_counts"]["overall"] > 0)
-                and (ann_max_count >= 3)
-                else "",
+                (
+                    html.Div(
+                        "*Years of January in May–April meteorological years",
+                        style={"font-size": 11, "margin-top": "15px"},
+                    )
+                    if (obs_flood_analysis["flood_counts"]["overall"] > 0)
+                    and (ann_max_count >= 3)
+                    else ""
+                ),
             ],
         ),
     )
@@ -692,20 +730,22 @@ def observed_flooding_text(station_name, threshold_name, obs_flood_analysis):
                             "*Years of January in May–April meteorological years",
                             style={"font-size": 11, "margin-top": "15px"},
                         ),
-                        html.Div(
-                            children=[
-                                "**See ",
-                                html.A(
-                                    "Box 1.1",
-                                    href="https://www.ipcc.ch/report/ar6/wg1/chapter/chapter-1/#h3-9-siblings",
-                                    target="_blank",
-                                ),
-                                " in the IPCC AR6 Report for more details about the calibrated language used for likelihood and its relationship to probability. In this case, probabilities were calculated by comparing the observed change in flooding days to differences in flooding days between many random pairs of decades with the difference in average sea level removed.",
-                            ],
-                            style={"font-size": 11, "margin-top": "5px"},
-                        )
-                        if htfc != 0
-                        else "",
+                        (
+                            html.Div(
+                                children=[
+                                    "**See ",
+                                    html.A(
+                                        "Box 1.1",
+                                        href="https://www.ipcc.ch/report/ar6/wg1/chapter/chapter-1/#h3-9-siblings",
+                                        target="_blank",
+                                    ),
+                                    " in the IPCC AR6 Report for more details about the calibrated language used for likelihood and its relationship to probability. In this case, probabilities were calculated by comparing the observed change in flooding days to differences in flooding days between many random pairs of decades with the difference in average sea level removed.",
+                                ],
+                                style={"font-size": 11, "margin-top": "5px"},
+                            )
+                            if htfc != 0
+                            else ""
+                        ),
                     ],
                 ),
             ]
@@ -791,7 +831,9 @@ def observed_flooding_text(station_name, threshold_name, obs_flood_analysis):
             # ),
             html.Div(
                 className="analysis-highlight",
-                children=[dcc.Markdown(children=seasonality_blurb),],
+                children=[
+                    dcc.Markdown(children=seasonality_blurb),
+                ],
             ),
         ]
     )
