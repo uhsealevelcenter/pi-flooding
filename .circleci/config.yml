@@ -21,7 +21,7 @@ jobs:
       - run:
           name: "restart service on wyrtki"
           command: |
-           ssh uhslc-dash@wyrtki.soest.hawaii.edu 'kill `grep "Starting gunicorn" /srv/apps/pi-flooding/error_log | tail -1 | cut -d\[ -f3 | cut -d\] -f`'
+           ssh uhslc-dash@wyrtki.soest.hawaii.edu 'kill `grep "Starting gunicorn" /srv/apps/pi-flooding/error_log | tail -1 | cut -d\[ -f3 | cut -d\] -f1`'
 
 
 # Invoke jobs via workflows
